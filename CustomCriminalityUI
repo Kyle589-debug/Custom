@@ -587,6 +587,39 @@ local abs = math.abs
                     Size = cfg.size,
                     BackgroundColor3 = Color3.fromRGB(40, 40, 40)
                 }) table.insert(library.main_frame, inline1)
+
+do -- Smooth drag for main UI
+    local dragging, dragStart, startPos
+
+    inline1.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = inline1.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    local tween = game:GetService("TweenService")
+    local UIS = game:GetService("UserInputService")
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            local newPos = UDim2.new(0, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)
+
+            tween:Create(inline1, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = newPos
+            }):Play()
+        end
+    end)
+end
+
                 local WINDOW_PATH = inline1
                 library:make_resizable(inline1)
                 
