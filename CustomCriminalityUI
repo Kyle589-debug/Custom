@@ -1,4 +1,3 @@
---aaa
 local uis = game:GetService("UserInputService") 
 local players = game:GetService("Players") 
 local ws = game:GetService("Workspace")
@@ -36,6 +35,8 @@ local floor = math.floor
 local min = math.min 
 local abs = math.abs 
 
+
+
 -- library init
     getgenv().library = {
         flags = {},
@@ -53,9 +54,9 @@ local abs = math.abs
         keybind_path; 
         panel_open = false, 
 
-        directory = "inactivity",
+        directory = "nigger",
         folders = {
-            "/fonts",
+            "/assets",
             "/configs"
         },
         font, 
@@ -167,27 +168,40 @@ local abs = math.abs
         makefolder(library.directory .. path)
     end 
 
-    if not isfile(library.directory .. "/fonts/main.ttf") then 
-        --writefile(library.directory .. "/fonts/main.ttf", game:HttpGet("https://github.com/f1nobe7650/other/raw/main/uis/font.ttf"))
-    end 
-    
-    local tahoma = {
-        name = "SmallestPixel7",
-        faces = {
-            {
-                name = "Regular",
-                weight = 400,
-                style = "normal",
-                --assetId = getcustomasset(library.directory .. "/fonts/main.ttf")
+    local Fonts = {}; do
+        local function RegisterFont(Name, Weight, Style, Asset)
+            if not isfile(Asset.Id) then
+                writefile(Asset.Id, Asset.Font)
+            end
+
+            if isfile(Name .. ".font") then
+                delfile(Name .. ".font")
+            end
+
+            local Data = {
+                name = Name,
+                faces = {
+                    {
+                        Name = "Normal",
+                        weight = Weight,
+                        style = Style,
+                        assetId = getcustomasset(Asset.Id),
+                    },
+                },
             }
-        }
-    }
-    
-    if not isfile(library.directory .. "/fonts/main_encoded.ttf") then 
-        writefile(library.directory .. "/fonts/main_encoded.ttf", http_service:JSONEncode(tahoma))
-    end 
-    
-    library.font = Font.new(getcustomasset(library.directory .. "/fonts/main_encoded.ttf"), Enum.FontWeight.Regular)
+
+            writefile(Name .. ".font", game:GetService("HttpService"):JSONEncode(Data))
+
+            return getcustomasset(Name .. ".font");
+        end
+        
+        local Tahoma = RegisterFont("Tahoma", 400, "Normal", {
+            Id = "Verdanawdawdwada.ttf",
+            Font = game:HttpGet("https://github.com/KingVonOBlockJoyce/OctoHook-UI/raw/refs/heads/main/fs-tahoma-8px%20(3).ttf"),
+        })
+
+        library.font = Font.new(Tahoma, Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+    end
 -- 
 
 -- functions 
@@ -196,7 +210,7 @@ local abs = math.abs
             return camera:WorldToViewportPoint(position)
         end 	
 
-       --[[ function library:unload()
+        function library:unload()
             library.gui:Destroy() 
 
             for _, connection in library.connections do 
@@ -208,7 +222,7 @@ local abs = math.abs
             end 
 
             getgenv().library = nil
-        end--]]
+        end
 
         function library:convert_string_rgb(str)
             local values = {}
@@ -388,6 +402,12 @@ local abs = math.abs
                 end 
             end 
 
+            if getgenv().namelabel and getgenv().windowcfg then
+                local oldname = getgenv().windowcfg.name
+                local nametodo = string.match(oldname, "([^%.]+)")
+                getgenv().namelabel.Text = string.format(`%s.<font color='rgb(%s, %s, %s)'>%s</font>`, nametodo, math.floor(themes.preset["accent"].R*255), math.floor(themes.preset["accent"].G*255), math.floor(themes.preset["accent"].B*255), "lol")
+            end
+
             themes.preset[theme] = color 
         end 
 
@@ -422,10 +442,13 @@ local abs = math.abs
         function library:window(properties) 
             local cfg = {
                 name = properties.Name or properties.name or properties.Title or properties.title or "ledger.live", 
-                size = properties.Size or properties.size or dim2(0, 500, 0, 650)
+                size = properties.Size or properties.size or dim2(0, 500, 0, 650),
+                watermarktext = properties.watermarktext or "bronx.lol | paid"
             }
+
+            getgenv().windowcfg = cfg
             
-            local animated_text = library:animation( cfg.name .. " | developer | uid 1") 
+            local animated_text = library:animation(cfg.watermarktext) 
 
             -- watermark 
                 local __holder = library:create("Frame", {
@@ -513,7 +536,7 @@ local abs = math.abs
                     Parent = tabs,
                     Name = "",
                     FontFace = library.font,
-                    TextColor3 = Color3.fromRGB(170, 170, 170),
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = "ledger.live",
                     TextStrokeTransparency = 0.5,
@@ -524,7 +547,8 @@ local abs = math.abs
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
                     TextSize = 12,
-                    BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    RichText = true,
                 })
 
                 local TEXT_ANIMATION_GRADIENT = library:create("UIGradient", {
@@ -587,39 +611,6 @@ local abs = math.abs
                     Size = cfg.size,
                     BackgroundColor3 = Color3.fromRGB(40, 40, 40)
                 }) table.insert(library.main_frame, inline1)
-
-do -- Smooth drag for main UI
-    local dragging, dragStart, startPos
-
-    inline1.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = inline1.Position
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    local tween = game:GetService("TweenService")
-    local UIS = game:GetService("UserInputService")
-
-    UIS.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            local newPos = UDim2.new(0, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)
-
-            tween:Create(inline1, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Position = newPos
-            }):Play()
-        end
-    end)
-end
-
                 local WINDOW_PATH = inline1
                 library:make_resizable(inline1)
                 
@@ -698,11 +689,11 @@ end
 
                 library:apply_theme(accent_line, "accent", "BackgroundColor3") 
                 
-                local name = library:create("TextLabel", {
+                getgenv().namelabel = library:create("TextLabel", {
                     Parent = inline1,
                     Name = "",
                     FontFace = library.font,
-                    TextColor3 = Color3.fromRGB(170, 170, 170),
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
                     Text = cfg.name,
                     TextStrokeTransparency = 0.5,
@@ -711,6 +702,7 @@ end
                     Position = UDim2.new(0, 0, 0, -1),
                     Size = UDim2.new(1, 0, 0, 1),
                     ZIndex = 2,
+                    RichText = true,
                     TextSize = 12,
                     BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 })
@@ -1508,7 +1500,7 @@ end
                     FontFace = library.font,
                     TextColor3 = Color3.fromRGB(170, 170, 170),
                     BorderColor3 = Color3.fromRGB(0, 0, 0),
-                    Text = "playerlist",
+                    Text = "Player List",
                     TextStrokeTransparency = 0.5,
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
@@ -3288,6 +3280,371 @@ end
                 cfg.set(cfg.enabled)
             end)
 
+            function cfg:keybind(properties)
+                local cfg = {
+                    key = properties.key or nil;
+                    flag = properties.flag or "";
+                    callback = properties.callback or function(v) print(v) end;
+                }
+
+                local keybind = library:create("TextButton", {
+                    Parent = right_components,
+                    Name = "",
+                    FontFace = library.font,
+                    TextColor3 = Color3.fromRGB(170, 170, 170),
+                    BorderColor3 = Color3.fromRGB(0, 0, 0),
+                    Text = "ERROR",
+                    TextStrokeTransparency = 0.5,
+                    Size = UDim2.new(0, 16, 1, 0),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    TextSize = 12,
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                })
+
+                local content_inline = library:create("Frame", {
+                    Parent = library.gui,
+                    Name = "",
+                    BorderColor3 = Color3.fromRGB(19, 19, 19),
+                    Size = UDim2.new(0, 57, 0, 0),
+                    Position = dim2(0, keybind.AbsolutePosition.X, 0, keybind.AbsolutePosition.Y - 5),
+                    BorderSizePixel = 0,
+                    ZIndex = 2,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Visible = false, 
+                    BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+                })
+
+                keybind:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+                    content_inline.Position = UDim2.new(0, keybind.AbsolutePosition.X, 0, keybind.AbsolutePosition.Y + 15)
+                end)
+                
+                local content = library:create("Frame", {
+                    Parent = content_inline,
+                    Name = "",
+                    Position = UDim2.new(0, 2, 0, 2),
+                    BorderColor3 = Color3.fromRGB(56, 56, 56),
+                    Size = UDim2.new(1, -4, 1, -4),
+                    BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+                })
+                
+                local options = library:create("Frame", {
+                    Parent = content,
+                    Name = "",
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 2, 0, 2),
+                    BorderColor3 = Color3.fromRGB(0, 0, 0),
+                    Size = UDim2.new(1, -4, 1, -4),
+                    BorderSizePixel = 0,
+                    BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                })
+                
+                local UIListLayout = library:create("UIListLayout", {
+                    Parent = options,
+                    Name = "",
+                    Padding = UDim.new(0, 2),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+                
+                local hold = library:create("TextButton", {
+                    Parent = options,
+                    Name = "",
+                    FontFace = library.font,
+                    TextColor3 = Color3.fromRGB(170, 170, 170),
+                    BorderColor3 = Color3.fromRGB(56, 56, 56),
+                    Text = "hold",
+                    TextStrokeTransparency = 0.5,
+                    Size = UDim2.new(1, 0, 0, 12),
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Position = UDim2.new(0, 2, 0, 2),
+                    BorderSizePixel = 0,
+                    TextSize = 12,
+                    BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+                })
+                
+                local UIPadding = library:create("UIPadding", {
+                    Parent = hold,
+                    Name = "",
+                    PaddingBottom = UDim.new(0, 1),
+                    PaddingLeft = UDim.new(0, 5)
+                })
+
+                local press = library:create("TextButton", {
+                    Parent = options,
+                    Name = "",
+                    FontFace = library.font,
+                    TextColor3 = Color3.fromRGB(170, 170, 170),
+                    BorderColor3 = Color3.fromRGB(56, 56, 56),
+                    Text = "toggle",
+                    TextStrokeTransparency = 0.5,
+                    Size = UDim2.new(1, 0, 0, 12),
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Position = UDim2.new(0, 2, 0, 2),
+                    BorderSizePixel = 0,
+                    TextSize = 12,
+                    BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+                })
+                
+                local UIPadding = library:create("UIPadding", {
+                    Parent = press,
+                    Name = "",
+                    PaddingBottom = UDim.new(0, 1),
+                    PaddingLeft = UDim.new(0, 5)
+                })
+                
+                local always = library:create("TextButton", {
+                    Parent = options,
+                    Name = "",
+                    FontFace = library.font,
+                    TextColor3 = Color3.fromRGB(170, 170, 170),
+                    BorderColor3 = Color3.fromRGB(56, 56, 56),
+                    Text = "always",
+                    TextStrokeTransparency = 0.5,
+                    Size = UDim2.new(1, 0, 0, 12),
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Position = UDim2.new(0, 2, 0, 2),
+                    BorderSizePixel = 0,
+                    TextSize = 12,
+                    BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+                })
+                
+                local UIPadding = library:create("UIPadding", {
+                    Parent = always,
+                    Name = "",
+                    PaddingBottom = UDim.new(0, 1),
+                    PaddingLeft = UDim.new(0, 5)
+                })
+                
+                local UIPadding = library:create("UIPadding", {
+                    Parent = options,
+                    Name = "",
+                    PaddingBottom = UDim.new(0, 4)
+                })
+            --  
+
+            function cfg.set_visible(bool)
+                content_inline.Visible = bool
+
+                if bool then 
+                    if library.current_element_open and library.current_element_open ~= cfg then 
+                        library.current_element_open.set_visible(false)
+                        library.current_element_open.open = false 
+                    end
+
+                    library.current_element_open = cfg 
+                end
+            end 
+
+            function cfg.set_mode(mode) 
+                cfg.mode = mode 
+
+                if mode == "always" then
+                    cfg.set(true)
+                elseif mode == "hold" then
+                    cfg.set(false)
+                end
+
+                flags[cfg.flag] = {
+                    mode = cfg.mode, 
+                    key = cfg.key,
+                    active = cfg.active 
+                }
+
+                flags[cfg.flag]["mode"] = mode
+            end 
+
+            function cfg.set(input)
+                if type(input) == "boolean" then 
+                    local __cached = input 
+
+                    if cfg.mode == "always" then 
+                        __cached = true 
+                    end 
+
+                    cfg.active = __cached 
+                    flags[cfg.flag]["active"] = __cached 
+                    cfg.callback(__cached)
+
+                    flags[cfg.flag] = {
+                        mode = cfg.mode, 
+                        key = cfg.key,
+                        active = cfg.active
+                    }
+                elseif tostring(input):find("Enum") then 
+                    input = input.Name == "Escape" and "..." or input
+
+                    cfg.key = input or "..."	
+
+                    local _text = keys[cfg.key] or tostring(cfg.key):gsub("Enum.", "")
+                    local _text2 = (tostring(_text):gsub("KeyCode.", ""):gsub("UserInputType.", "")) or "..."
+                    cfg.key_name = _text2
+
+                    flags[cfg.flag]["mode"] = cfg.mode 
+                    flags[cfg.flag]["key"] = cfg.key 
+
+                    keybind.Text = "[" .. string.lower(_text2) .. "]"
+
+                    cfg.callback(cfg.active or false)
+
+                    flags[cfg.flag] = {
+                        mode = cfg.mode, 
+                        key = cfg.key,
+                        active = cfg.active 
+                    }
+                elseif table.find({"toggle", "hold", "always"}, input) then 
+                    cfg.set_mode(input)
+
+                    if input == "always" then 
+                        cfg.active = true 
+                    end 
+
+                    cfg.callback(cfg.active or false)
+
+                    flags[cfg.flag] = {
+                        mode = cfg.mode ,
+                        key = cfg.key,
+                        active = cfg.active
+                    }
+                    
+                elseif type(input) == "table" then 
+                    input.key = type(input.key) == "string" and input.key ~= "..." and library:convert_enum(input.key) or input.key
+
+                    input.key = input.key == Enum.KeyCode.Escape and "..." or input.key
+                    cfg.key = input.key or "..."
+                    
+                    cfg.mode = input.mode or "toggle"
+
+                    if input.active then
+                        cfg.active = input.active
+                    end
+
+                    flags[cfg.flag] = {
+                        mode = cfg.mode,
+                        key = cfg.key, 
+                        active = cfg.active
+                    }
+
+                    local text = tostring(cfg.key) ~= "Enums" and (keys[cfg.key] or tostring(cfg.key):gsub("Enum.", "")) or nil
+                    local __text = text and (tostring(text):gsub("KeyCode.", ""):gsub("UserInputType.", ""))
+
+                    keybind.Text = "[" .. string.lower(__text)  .. "]" or "..."
+                    cfg.key_name = __text
+                end 
+
+                if cfg.keybind_name then 
+                    key.change_text(keybind.Text ..  " " .. cfg.keybind_name .. " (" .. flags[cfg.flag].mode  .. ")")
+                    key.set_visible(cfg.active)
+                end 
+            end
+
+            local selected; 
+
+            hold.MouseButton1Click:Connect(function()
+                if cfg.mode == "hold" then 
+                    hold.BackgroundTransparency = 1
+                end 
+
+                always.BackgroundTransparency = 1
+                press.BackgroundTransparency = 1
+                hold.BackgroundTransparency = 1
+
+                selected = "hold"
+                hold.BackgroundTransparency = 0 
+
+                cfg.set_mode("hold") 
+                cfg.set_visible(false)
+                cfg.open = false 
+            end) 
+
+            press.MouseButton1Click:Connect(function()
+                if cfg.mode == "toggle" then 
+                    press.BackgroundTransparency = 1
+                end 
+
+                always.BackgroundTransparency = 1
+                press.BackgroundTransparency = 1
+                hold.BackgroundTransparency = 1
+
+                selected = "toggle"
+                press.BackgroundTransparency = 0 
+
+                cfg.set(false)
+                cfg.set_mode("toggle") 
+                cfg.set_visible(false)
+                cfg.open = false 
+            end) 
+
+            always.MouseButton1Click:Connect(function()
+                if cfg.mode == "always" then 
+                    always.BackgroundTransparency = 1
+                end 
+
+                always.BackgroundTransparency = 1
+                press.BackgroundTransparency = 1
+                hold.BackgroundTransparency = 1
+
+                selected = "always"
+                
+                always.BackgroundTransparency = 0 
+                cfg.set_mode("always") 
+                cfg.set_visible(false)
+                cfg.open = false 
+            end) 
+
+            keybind.MouseButton2Click:Connect(function()
+                cfg.open = not cfg.open 
+
+                cfg.set_visible(cfg.open)
+            end)
+            
+            keybind.MouseButton1Down:Connect(function()
+                task.wait()
+                keybind.Text = "..."	
+
+                cfg.binding = library:connection(uis.InputBegan, function(keycode, game_event)  
+                    cfg.set(keycode.KeyCode)
+                    
+                    cfg.binding:Disconnect() 
+                    cfg.binding = nil
+                end)
+            end)
+
+            library:connection(uis.InputBegan, function(input, game_event) 
+                if not game_event then 
+                    if input.KeyCode == cfg.key then 
+                        if cfg.mode == "toggle" then 
+                            toggled = not toggled
+                            cfg.set(toggled)
+                        elseif cfg.mode == "hold" then 
+                            cfg.set(true)
+                        end
+                    end
+                end
+            end)
+
+            library:connection(uis.InputEnded, function(input, game_event) 
+                if game_event then 
+                    return 
+                end 
+
+                local selected_key = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
+    
+                if selected_key == cfg.key then
+                    if cfg.mode == "hold" then 
+                        cfg.set(false)
+                    end
+                end
+            end)
+    
+            cfg.set({mode = cfg.mode, active = cfg.active, key = cfg.key})
+    
+            library.config_flags[cfg.flag] = cfg.set
+            end
+
             cfg.set(cfg.default)
         
             self.previous_holder = left_components
@@ -3296,7 +3653,7 @@ end
             
             config_flags[cfg.flag] = cfg.set
 
-             return setmetatable(cfg, library)  
+            return setmetatable(cfg, library)  
         end 
         
         function library:slider(properties)
@@ -3397,7 +3754,8 @@ end
                 Name = "",
                 Position = UDim2.new(0, 2, 0, 2),
                 Size = UDim2.new(1, 0, 1, -4),
-                BackgroundColor3 = themes.preset.accent
+                BackgroundColor3 = themes.preset.accent,
+                BorderColor3 = Color3.fromRGB(20, 20, 20)
             })
 
             library:apply_theme(fill, "accent", "BackgroundColor3") 
@@ -4473,16 +4831,25 @@ end
             flags[cfg.flag]["animation"] = "normal"
 
             rainbow.MouseButton1Down:Connect(function()
-                selected.BackgroundTransparency = 1; 
+                rainbow.BackgroundTransparency = 1
+                fade_alpha.BackgroundTransparency = 1
+                fade.BackgroundTransparency = 1
+                normal.BackgroundTransparency = 1
                 selected = "rainbow" 
+
                 rainbow.BackgroundTransparency = 0 
+
+
 
                 flags[cfg.flag]["animation"] = "rainbow"
                 cfg.saved_color = hsv(s,s,v)
             end)
 
             fade_alpha.MouseButton1Down:Connect(function()
-                selected.BackgroundTransparency = 1; 
+                rainbow.BackgroundTransparency = 1
+                fade_alpha.BackgroundTransparency = 1
+                fade.BackgroundTransparency = 1
+                normal.BackgroundTransparency = 1
                 selected = "fade_alpha" 
                 fade_alpha.BackgroundTransparency = 0 
 
@@ -4491,7 +4858,10 @@ end
             end)
 
             fade.MouseButton1Down:Connect(function()
-                selected.BackgroundTransparency = 1; 
+                rainbow.BackgroundTransparency = 1
+                fade_alpha.BackgroundTransparency = 1
+                fade.BackgroundTransparency = 1
+                normal.BackgroundTransparency = 1
                 selected = "fade" 
                 fade.BackgroundTransparency = 0 
 
@@ -4500,7 +4870,10 @@ end
             end)
 
             normal.MouseButton1Down:Connect(function()
-                selected.BackgroundTransparency = 1; 
+                rainbow.BackgroundTransparency = 1
+                fade_alpha.BackgroundTransparency = 1
+                fade.BackgroundTransparency = 1
+                normal.BackgroundTransparency = 1
                 selected = "normal" 
                 normal.BackgroundTransparency = 0 
 
@@ -4667,29 +5040,6 @@ end
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
                 
-                local press = library:create("TextButton", {
-                    Parent = options,
-                    Name = "",
-                    FontFace = library.font,
-                    TextColor3 = Color3.fromRGB(170, 170, 170),
-                    BorderColor3 = Color3.fromRGB(56, 56, 56),
-                    Text = "press",
-                    Size = UDim2.new(1, 0, 0, 12),
-                    BackgroundTransparency = 1,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Position = UDim2.new(0, 2, 0, 2),
-                    BorderSizePixel = 0,
-                    TextSize = 12,
-                    BackgroundColor3 = Color3.fromRGB(65, 65, 65)
-                })
-                
-                local UIPadding = library:create("UIPadding", {
-                    Parent = press,
-                    Name = "",
-                    PaddingBottom = UDim.new(0, 1),
-                    PaddingLeft = UDim.new(0, 5)
-                })
-                
                 local hold = library:create("TextButton", {
                     Parent = options,
                     Name = "",
@@ -4709,6 +5059,30 @@ end
                 
                 local UIPadding = library:create("UIPadding", {
                     Parent = hold,
+                    Name = "",
+                    PaddingBottom = UDim.new(0, 1),
+                    PaddingLeft = UDim.new(0, 5)
+                })
+
+                local press = library:create("TextButton", {
+                    Parent = options,
+                    Name = "",
+                    FontFace = library.font,
+                    TextColor3 = Color3.fromRGB(170, 170, 170),
+                    BorderColor3 = Color3.fromRGB(56, 56, 56),
+                    Text = "toggle",
+                    TextStrokeTransparency = 0.5,
+                    Size = UDim2.new(1, 0, 0, 12),
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Position = UDim2.new(0, 2, 0, 2),
+                    BorderSizePixel = 0,
+                    TextSize = 12,
+                    BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+                })
+                
+                local UIPadding = library:create("UIPadding", {
+                    Parent = press,
                     Name = "",
                     PaddingBottom = UDim.new(0, 1),
                     PaddingLeft = UDim.new(0, 5)
@@ -4863,9 +5237,14 @@ end
             local selected; 
 
             hold.MouseButton1Click:Connect(function()
-                if selected then 
-                    selected.BackgroundTransparency = 1
+                if cfg.mode == "hold" then 
+                    hold.BackgroundTransparency = 1
                 end 
+
+                always.BackgroundTransparency = 1
+                press.BackgroundTransparency = 1
+                hold.BackgroundTransparency = 1
+
                 selected = "hold"
                 hold.BackgroundTransparency = 0 
 
@@ -4875,10 +5254,15 @@ end
             end) 
 
             press.MouseButton1Click:Connect(function()
-                if selected then 
-                    selected.BackgroundTransparency = 1
+                if cfg.mode == "toggle" then 
+                    press.BackgroundTransparency = 1
                 end 
-                selected = "press"
+
+                always.BackgroundTransparency = 1
+                press.BackgroundTransparency = 1
+                hold.BackgroundTransparency = 1
+
+                selected = "toggle"
                 press.BackgroundTransparency = 0 
 
                 cfg.set_mode("toggle") 
@@ -4887,9 +5271,14 @@ end
             end) 
 
             always.MouseButton1Click:Connect(function()
-                if selected then 
-                    selected.BackgroundTransparency = 1
-                end 
+                if cfg.mode == "always" then 
+                    always.BackgroundTransparency = 1
+                end
+
+                always.BackgroundTransparency = 1
+                press.BackgroundTransparency = 1
+                hold.BackgroundTransparency = 1
+
                 selected = "always"
                 
                 always.BackgroundTransparency = 0 
@@ -4897,6 +5286,18 @@ end
                 cfg.set_visible(false)
                 cfg.open = false 
             end) 
+
+            if cfg.mode == "always" then 
+                always.BackgroundTransparency = 0
+            end
+
+            if cfg.mode == "toggle" then 
+                press.BackgroundTransparency = 0
+            end
+
+            if cfg.mode == "hold" then 
+                hold.BackgroundTransparency = 0
+            end
 
             keybind.MouseButton2Click:Connect(function()
                 cfg.open = not cfg.open 
@@ -5187,7 +5588,31 @@ end
                 Name = ""
             })
 
-          
+            -- local textbox_inline = library:create("Frame", {
+            --     Parent = Frame,
+            --     Name = "",
+            --     Position = UDim2.new(0, -15, 0, 2),
+            --     BorderColor3 = Color3.fromRGB(19, 19, 19),
+            --     Size = UDim2.new(0, 130, 0, 16),
+            --     BorderSizePixel = 0,
+            --     BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+            -- })
+
+            -- local textbox = library:create("TextBox", {
+            --     Parent = textbox_inline,
+            --     Name = "",
+            --     FontFace = library.font,
+            --     TextColor3 = Color3.fromRGB(170, 170, 170),
+            --     BorderColor3 = Color3.fromRGB(56, 56, 56),
+            --     Text = "",
+            --     TextStrokeTransparency = 0.5,
+            --     Size = UDim2.new(1, -4, 1, -4),
+            --     PlaceholderColor3 = Color3.fromRGB(90, 90, 90),
+            --     Position = UDim2.new(0, 2, 0, 2),
+            --     PlaceholderText = "name",
+            --     TextSize = 12,
+            --     BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+            -- })
 
             for _, v in next, cfg.options do 
                 local button_inline = library:create("Frame", {
@@ -5220,7 +5645,7 @@ end
                     library.__panel = false 
                 end)
             end     
-        end 
+        end
     -- 
 -- 
 return library
