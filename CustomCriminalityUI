@@ -441,9 +441,9 @@ local abs = math.abs
     -- library functions 
         function library:window(properties) 
             local cfg = {
-                name = properties.Name or properties.name or properties.Title or properties.title or "ledger.live", 
+                name = properties.Name or properties.name or properties.Title or properties.title or "UltraSense", 
                 size = properties.Size or properties.size or dim2(0, 500, 0, 650),
-                watermarktext = properties.watermarktext or "bronx.lol | paid"
+                watermarktext = properties.watermarktext or "UltraSense | Private"
             }
 
             getgenv().windowcfg = cfg
